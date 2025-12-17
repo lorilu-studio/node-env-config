@@ -120,23 +120,15 @@ MIT License
 
 1. **拉取镜像**
    ```bash
-   # 拉取特定版本
-   docker pull lorilu/env-manager:1.0.0
-   
-   # 或者拉取最新版本
-   docker pull lorilu/env-manager:latest
-   
-   # 拉取特定架构版本
+   # 拉取特定架构版本（推荐）
    docker pull lorilu/env-manager:amd64-1.0.0  # AMD64架构
    docker pull lorilu/env-manager:arm64-1.0.0  # ARM64架构
+    
    ```
 
 2. **运行容器**
    ```bash
-   # 运行容器（自动选择架构）
-   docker run -d -p 35643:35643 --name env-manager lorilu/env-manager:1.0.0
-   
-   # 运行特定架构容器
+   # 运行特定架构容器（推荐）
    docker run --platform linux/amd64 -d -p 35643:35643 --name env-manager-amd64 lorilu/env-manager:amd64-1.0.0
    docker run --platform linux/arm64 -d -p 35643:35643 --name env-manager-arm64 lorilu/env-manager:arm64-1.0.0
    ```
@@ -154,7 +146,7 @@ MIT License
 
    services:
      env-manager:
-       image: lorilu/env-manager:1.0.0
+       image: lorilu/env-manager:amd64-1.0.0  # 使用 AMD64 版本，或改为 arm64-1.0.0
        container_name: env-manager
        restart: unless-stopped
        ports:
@@ -187,7 +179,7 @@ MIT License
 docker run -d -p 35643:35643 \
   --name env-manager \
   -e DB_PATH=/app/custom-data/my-env-vars.db \
-  lorilu/env-manager:1.0.0
+  lorilu/env-manager:amd64-1.0.0  # 使用 AMD64 版本，或改为 arm64-1.0.0
 ```
 
 ### 环境变量配置
