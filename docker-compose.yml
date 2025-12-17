@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  env-manager:
+    build: .
+    container_name: env-manager
+    restart: unless-stopped
+    ports:
+      - "35643:35643"
+    volumes:
+      - ./env_vars.db:/app/env_vars.db
+    environment:
+      - NODE_ENV=production
+    networks:
+      - env-manager-network
+
+networks:
+  env-manager-network:
+    driver: bridge
