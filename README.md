@@ -111,6 +111,84 @@ MIT License
 
 欢迎提交Issue和Pull Request！
 
-## 作者
 
-无
+## Docker 部署
+
+您可以使用Docker快速部署此环境变量管理系统：
+
+### 使用Docker Hub镜像
+
+1. **拉取镜像**
+   ```bash
+   # 拉取特定版本
+   docker pull lorilu/env-manager:1.0.0
+   
+   # 或者拉取最新版本
+   docker pull lorilu/env-manager:latest
+   ```
+
+2. **运行容器**
+   ```bash
+   # 运行容器
+   docker run -d -p 35643:35643 --name env-manager lorilu/env-manager:1.0.0
+   ```
+
+3. **访问服务**
+   - 登录页面：`http://localhost:35643/login`
+   - 主页面：`http://localhost:35643`
+   - API文档：`http://localhost:35643/api-docs`
+
+### 使用Docker Compose
+
+1. **创建docker-compose.yml文件**
+   ```yaml
+   version: '3.8'
+
+   services:
+     env-manager:
+       image: lorilu/env-manager:1.0.0
+       container_name: env-manager
+       restart: unless-stopped
+       ports:
+         - "35643:35643"
+       volumes:
+         - ./env_vars.db:/app/env_vars.db
+       environment:
+         - NODE_ENV=production
+   ```
+
+2. **启动服务**
+   ```bash
+   docker-compose up -d
+   ```
+
+### 数据持久化
+
+为了确保环境变量数据不会在容器重启后丢失，建议将数据库文件挂载到宿主机：
+
+```bash
+docker run -d -p 35643:35643 \
+  --name env-manager \
+  -v /your/local/path/env_vars.db:/app/env_vars.db \
+  lorilu/env-manager:1.0.0
+```
+
+### 自定义构建
+
+如果您想自定义构建镜像：
+
+1. **克隆项目**
+   ```bash
+   git clone [项目地址]
+   cd node-env-config
+   ```
+
+2. **构建镜像**
+   ```bash
+   docker build -t your-name/env-manager:1.0.0 .
+   ```
+
+3. **运行容器**
+   ```bash
+   docker run -d -p 35643:35643 --name env-manager your-name/env-manager:1.0.0
+   ```
