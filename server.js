@@ -35,11 +35,20 @@ function isAuthenticated(req, res, next) {
 }
 
 // 创建SQLite数据库连接
-const db = new sqlite3.Database('./env_vars.db', (err) => {
+// 优先使用环境变量中的数据库路径，否则使用默认路径
+const dbPath = process.env.DB_PATH || path.join(process.env.DATA_DIR || './data', 'env_vars.db');
+
+// 确保数据目录存在
+const dataDir = path.dirname(dbPath);
+if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+}
+
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('数据库连接错误:', err.message);
     } else {
-        console.log('已成功连接到SQLite数据库');
+        console.log('已成功连接到SQLite数据库，路径:', dbPath);
         // 创建环境变量表
         createEnvVarsTable();
     }
@@ -356,8 +365,23 @@ app.delete('/api/env-vars/:id', isAuthenticated, (req, res) => {
     });
 });
 
+// 优雅关闭数据库连接的函数
+function closeDatabase() {
+    return new Promise((resolve, reject) => {
+        db.close((err) => {
+            if (err) {
+                console.error('关闭数据库连接错误:', err.message);
+                reject(err);
+            } else {
+                console.log('已关闭SQLite数据库连接');
+                resolve();
+            }
+        });
+    });
+}
+
 // 启动服务器
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`服务器已启动，监听端口 ${PORT}`);
     console.log(`访问地址: http://localhost:${PORT}`);
     console.log(`登录页面: http://localhost:${PORT}/login`);
@@ -366,13 +390,31 @@ app.listen(PORT, () => {
 });
 
 // 关闭服务器时关闭数据库连接
-process.on('SIGINT', () => {
-    db.close((err) => {
-        if (err) {
-            console.error('关闭数据库连接错误:', err.message);
-        } else {
-            console.log('已关闭SQLite数据库连接');
+process.on('SIGINT', async () => {
+    console.log('收到SIGINT信号，正在关闭服务器...');
+    server.close(async () => {
+        console.log('HTTP服务器已关闭');
+        try {
+            await closeDatabase();
+            process.exit(0);
+        } catch (error) {
+            console.error('关闭数据库时出错:', error);
+            process.exit(1);
         }
-        process.exit(0);
+    });
+});
+
+// 处理SIGTERM信号（Docker容器停止时会发送此信号）
+process.on('SIGTERM', async () => {
+    console.log('收到SIGTERM信号，正在关闭服务器...');
+    server.close(async () => {
+        console.log('HTTP服务器已关闭');
+        try {
+            await closeDatabase();
+            process.exit(0);
+        } catch (error) {
+            console.error('关闭数据库时出错:', error);
+            process.exit(1);
+        }
     });
 });

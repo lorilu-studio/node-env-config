@@ -152,9 +152,10 @@ MIT License
        ports:
          - "35643:35643"
        volumes:
-         - ./env_vars.db:/app/env_vars.db
+         - ./data:/app/data
        environment:
          - NODE_ENV=production
+         - DATA_DIR=/app/data
    ```
 
 2. **启动服务**
@@ -164,14 +165,39 @@ MIT License
 
 ### 数据持久化
 
-为了确保环境变量数据不会在容器重启后丢失，建议将数据库文件挂载到宿主机：
+为了确保环境变量数据不会在容器重启后丢失，建议将数据目录挂载到宿主机：
+
+```bash
+# 创建数据目录
+mkdir -p ./data
+
+# 运行容器并挂载数据目录
+docker run -d -p 35643:35643 \
+  --name env-manager \
+  -v $(pwd)/data:/app/data \
+  -e DATA_DIR=/app/data \
+  lorilu/env-manager:1.0.0
+```
+
+### 高级配置
+
+您可以通过环境变量自定义数据库路径：
 
 ```bash
 docker run -d -p 35643:35643 \
   --name env-manager \
-  -v /your/local/path/env_vars.db:/app/env_vars.db \
+  -v /your/custom/path:/app/custom-data \
+  -e DB_PATH=/app/custom-data/my-env-vars.db \
   lorilu/env-manager:1.0.0
 ```
+
+### 环境变量配置
+
+| 环境变量 | 默认值 | 描述 |
+|---------|-------|------|
+| `DATA_DIR` | `./data` | 数据存储目录 |
+| `DB_PATH` | `$DATA_DIR/env_vars.db` | 数据库文件完整路径 |
+| `NODE_ENV` | `production` | 运行环境 |
 
 ### 自定义构建
 
