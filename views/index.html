@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>环境变量管理系统</title>
+    <style>
+        /* ShadeUI风格 - 简约设计 */
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #6b7280;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --background-color: #f9fafb;
+            --card-background: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --radius: 6px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+        
+        /* 导航栏 */
+        .navbar {
+            background-color: var(--card-background);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 0;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .navbar-brand {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .navbar-nav {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+        
+        /* 容器 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 标题 */
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        
+        /* 卡片 */
+        .card {
+            background-color: var(--card-background);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        /* 表单 */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+        
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 14px;
+            color: var(--text-primary);
+            background-color: var(--card-background);
+            transition: all 0.2s ease;
+        }
+        
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        /* 按钮 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        /* 表单操作按钮 */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        /* 表格 */
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+        
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background-color: #f9fafb;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        /* 操作按钮组 */
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        
+        /* 消息提示 */
+        .message {
+            padding: 10px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .message.success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .message.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px 20px;
+            font-style: italic;
+        }
+        
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: var(--card-background);
+            margin: 15% auto;
+            padding: 24px;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .close {
+            color: var(--text-secondary);
+            font-size: 24px;
+            font-weight: 400;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .close:hover {
+            color: var(--text-primary);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .navbar-container {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .navbar-nav {
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">环境变量管理系统</div>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a href="/" class="nav-link">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/api-docs" class="nav-link" target="_blank">API文档</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/logout" class="nav-link">退出登录</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+      
+        
+        <!-- 消息提示 -->
+        <div id="message" class="message" style="display: none;"></div>
+        
+        <!-- 添加按钮 -->
+        <div style="margin-bottom: 20px;">
+            <button type="button" class="btn btn-primary" id="addEnvBtn">添加环境变量</button>
+        </div>
+        
+        <!-- 添加/编辑环境变量模态框 -->
+        <div id="envModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="envModalTitle">添加环境变量</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <form id="envForm">
+                    <input type="hidden" id="envId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="key">键 *</label>
+                            <input type="text" id="key" name="key" placeholder="请输入环境变量键" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="value">值 *</label>
+                            <input type="text" id="value" name="value" placeholder="请输入环境变量值" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="remark">备注</label>
+                        <textarea id="remark" name="remark" placeholder="请输入备注信息"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 环境变量列表卡片 -->
+        <div class="card">
+            <h2>环境变量列表</h2>
+            <div class="table-container">
+                <table id="envTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>键</th>
+                            <th>值</th>
+                            <th>备注</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="envTableBody">
+                        <!-- 数据将通过JavaScript动态加载 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 删除确认模态框 -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">确认删除</h3>
+                <span class="close">&times;</span>
+            </div>
+            <p>您确定要删除这条环境变量吗？此操作不可恢复。</p>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">取消</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">确认删除</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let currentEditId = null;
+        let deleteId = null;
+        
+        // DOM元素
+        const messageEl = document.getElementById('message');
+        const envModal = document.getElementById('envModal');
+        const envModalTitle = document.getElementById('envModalTitle');
+        const envForm = document.getElementById('envForm');
+        const envIdEl = document.getElementById('envId');
+        const keyEl = document.getElementById('key');
+        const valueEl = document.getElementById('value');
+        const remarkEl = document.getElementById('remark');
+        const addEnvBtn = document.getElementById('addEnvBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const envTableBody = document.getElementById('envTableBody');
+        const deleteModal = document.getElementById('deleteModal');
+        const modalCloseButtons = document.getElementsByClassName('close');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        
+        // 显示消息
+        function showMessage(text, type = 'success') {
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 35643);
+        }
+        
+        // 显示环境变量模态框
+        function showEnvModal(title) {
+            envModalTitle.textContent = title;
+            envModal.style.display = 'block';
+        }
+        
+        // 隐藏环境变量模态框
+        function hideEnvModal() {
+            envModal.style.display = 'none';
+            resetForm();
+        }
+        
+        // 加载所有环境变量
+        async function loadEnvVars() {
+            try {
+                const response = await fetch('/api/env-vars');
+                const envVars = await response.json();
+                
+                // 清空表格
+                envTableBody.innerHTML = '';
+                
+                // 无数据状态
+                if (envVars.length === 0) {
+                    envTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="empty-state">暂无环境变量数据</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                // 渲染表格数据
+                envVars.forEach(envVar => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${envVar.id}</td>
+                        <td>${envVar.key}</td>
+                        <td>${envVar.value}</td>
+                        <td>${envVar.remark || '-'}</td>
+                        <td>${new Date(envVar.created_at).toLocaleString()}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-success" onclick="editEnvVar(${envVar.id})">编辑</button>
+                            <button class="btn btn-danger" onclick="showDeleteModal(${envVar.id})">删除</button>
+                        </td>
+                    `;
+                    envTableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('加载环境变量失败:', error);
+                showMessage('加载环境变量失败', 'error');
+            }
+        }
+        
+        // 重置表单
+        function resetForm() {
+            envForm.reset();
+            envIdEl.value = '';
+            currentEditId = null;
+        }
+        
+        // 编辑环境变量
+        async function editEnvVar(id) {
+            try {
+                const response = await fetch('/api/env-vars');
+                const envVars = await response.json();
+                const envVar = envVars.find(e => e.id === id);
+                
+                if (envVar) {
+                    currentEditId = id;
+                    envIdEl.value = id;
+                    keyEl.value = envVar.key;
+                    valueEl.value = envVar.value;
+                    remarkEl.value = envVar.remark || '';
+                    
+                    showEnvModal('编辑环境变量');
+                }
+            } catch (error) {
+                console.error('获取环境变量数据失败:', error);
+                showMessage('获取环境变量数据失败', 'error');
+            }
+        }
+        
+        // 显示删除确认模态框
+        function showDeleteModal(id) {
+            deleteId = id;
+            deleteModal.style.display = 'block';
+        }
+        
+        // 隐藏删除确认模态框
+        function hideDeleteModal() {
+            deleteModal.style.display = 'none';
+            deleteId = null;
+        }
+        
+        // 删除环境变量
+        async function deleteEnvVar(id) {
+            try {
+                const response = await fetch(`/api/env-vars/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    hideDeleteModal();
+                    loadEnvVars();
+                    showMessage('删除成功');
+                } else {
+                    const error = await response.json();
+                    showMessage(error.error || '删除失败', 'error');
+                }
+            } catch (error) {
+                console.error('删除环境变量失败:', error);
+                showMessage('删除环境变量失败', 'error');
+            }
+        }
+        
+        // 表单提交事件
+        envForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const key = keyEl.value.trim();
+            const value = valueEl.value.trim();
+            const remark = remarkEl.value.trim();
+            
+            if (!key || !value) {
+                showMessage('环境变量键和值不能为空', 'error');
+                return;
+            }
+            
+            try {
+                const isEdit = !!currentEditId;
+                const method = isEdit ? 'PUT' : 'POST';
+                const apiUrl = isEdit ? `/api/env-vars/${currentEditId}` : '/api/env-vars';
+                
+                const response = await fetch(apiUrl, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ key, value, remark })
+                });
+                
+                if (response.ok) {
+                    hideEnvModal();
+                    loadEnvVars();
+                    showMessage(isEdit ? '更新成功' : '添加成功');
+                } else {
+                    const error = await response.json();
+                    showMessage(error.error || (isEdit ? '更新失败' : '添加失败'), 'error');
+                }
+            } catch (error) {
+                console.error('保存环境变量失败:', error);
+                showMessage('保存环境变量失败', 'error');
+            }
+        });
+        
+        // 取消编辑事件
+        cancelBtn.addEventListener('click', hideEnvModal);
+        
+        // 添加环境变量按钮点击事件
+        addEnvBtn.addEventListener('click', () => {
+            resetForm();
+            showEnvModal('添加环境变量');
+        });
+        
+        // 模态框关闭事件
+        Array.from(modalCloseButtons).forEach(button => {
+            button.addEventListener('click', () => {
+                hideEnvModal();
+                hideDeleteModal();
+            });
+        });
+        
+        // 删除模态框事件
+        cancelDeleteBtn.addEventListener('click', hideDeleteModal);
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (deleteId) {
+                deleteEnvVar(deleteId);
+            }
+        });
+        
+        // 点击模态框外部关闭模态框
+        window.addEventListener('click', (e) => {
+            if (e.target === envModal) {
+                hideEnvModal();
+            } else if (e.target === deleteModal) {
+                hideDeleteModal();
+            }
+        });
+        
+        // 页面加载时加载环境变量数据
+        window.addEventListener('DOMContentLoaded', loadEnvVars);
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "node-env-config-server",
+  "version": "1.0.0",
+  "description": "Node.js服务，从环境变量读取配置并渲染HTML界面",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.1",
+    "express": "^4.18.2",
+    "express-session": "^1.18.2",
+    "sqlite3": "^5.1.6",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "env",
+    "config",
+    "html"
+  ],
+  "author": "",
+  "license": "MIT"
+}
