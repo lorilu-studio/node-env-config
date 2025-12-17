@@ -95,13 +95,21 @@ CMD ["npm", "start"]
 在项目根目录执行以下命令构建镜像：
 
 ```bash
-docker build -t env-manager:latest .
+docker build -t env-manager:1.0.0 .
 ```
 
 **命令解释：**
 - `docker build`：构建Docker镜像的命令
-- `-t env-manager:latest`：为镜像添加标签，`env-manager`是镜像名称，`latest`是标签
+- `-t env-manager:1.0.0`：为镜像添加标签，`env-manager`是镜像名称，`1.0.0`是标签
 - `.`：指定Dockerfile所在的目录，这里是当前目录
+
+**关于版本标签的最佳实践：**
+- 使用语义化版本号（如1.0.0, 1.1.0, 2.0.0）而不是`latest`
+- `latest`标签容易导致版本混淆，不适合生产环境
+- 语义化版本号可以清晰地表示应用的版本状态
+- 主版本号：不兼容的API修改
+- 次版本号：向下兼容的功能性新增
+- 修订号：向下兼容的问题修正
 
 **构建过程解释：**
 1. Docker会从基础镜像`node:18-alpine`开始
@@ -132,7 +140,7 @@ env-manager   latest    abcdef123456   2 minutes ago   120MB
 ### 5.1 使用docker run命令运行容器
 
 ```bash
-docker run -d -p 35643:35643 --name env-manager-container env-manager:latest
+docker run -d -p 35643:35643 --name env-manager-container env-manager:1.0.0
 ```
 
 **命令解释：**
@@ -140,7 +148,7 @@ docker run -d -p 35643:35643 --name env-manager-container env-manager:latest
 - `-d`：在后台运行容器
 - `-p 35643:35643`：端口映射，将宿主机的35643端口映射到容器的35643端口
 - `--name env-manager-container`：为容器指定名称
-- `env-manager:latest`：指定要运行的镜像
+- `env-manager:1.0.0`：指定要运行的镜像
 
 ### 5.2 查看运行中的容器
 
@@ -152,7 +160,7 @@ docker ps
 
 ```
 CONTAINER ID   IMAGE               COMMAND                  CREATED          STATUS          PORTS                      NAMES
-a1b2c3d4e5f6   env-manager:latest   "npm start"              1 minute ago     Up 1 minute     0.0.0.0:35643->35643/tcp   env-manager-container
+a1b2c3d4e5f6   env-manager:1.0.0   "npm start"              1 minute ago     Up 1 minute     0.0.0.0:35643->35643/tcp   env-manager-container
 ```
 
 ### 5.3 访问应用
@@ -293,7 +301,7 @@ docker images
 可以为镜像添加多个标签：
 
 ```bash
-docker tag env-manager:latest env-manager:v1.0.0
+docker tag env-manager:1.0.0 env-manager:v1.0.0
 ```
 
 ### 7.3 删除本地镜像
@@ -305,7 +313,7 @@ docker rmi env-manager:v1.0.0
 如果镜像被容器使用，需要先删除容器，或者使用`-f`参数强制删除：
 
 ```bash
-docker rmi -f env-manager:latest
+docker rmi -f env-manager:1.0.0
 ```
 
 ### 7.4 清理未使用的资源
@@ -339,7 +347,7 @@ docker system prune -a --volumes
   ```
 - 停止占用端口的进程，或者使用不同的端口：
   ```bash
-  docker run -d -p 35644:35643 env-manager:latest
+  docker run -d -p 35644:35643 env-manager:1.0.0
   ```
 
 ### 8.2 构建失败
@@ -432,7 +440,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/library/node:18-alpine
 ```bash
 docker build --build-arg HTTP_PROXY=http://proxy.example.com:8080 \
              --build-arg HTTPS_PROXY=http://proxy.example.com:8080 \
-             -t env-manager:latest .
+             -t env-manager:1.0.0 .
 ```
 
 **推荐解决方案顺序：**
