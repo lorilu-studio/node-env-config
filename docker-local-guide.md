@@ -227,9 +227,10 @@ services:
     ports:
       - "35643:35643"
     volumes:
-      - ./env_vars.db:/app/env_vars.db
+      - ./data:/app/data
     environment:
       - NODE_ENV=production
+      - DATA_DIR=/app/data
     networks:
       - env-manager-network
 
@@ -280,13 +281,38 @@ docker-compose down
 
 ```yaml
 volumes:
-  - ./env_vars.db:/app/env_vars.db
+  - ./data:/app/data
 ```
 
 这意味着：
-- 容器内的`/app/env_vars.db`文件会映射到宿主机的`./env_vars.db`文件
+- 容器内的`/app/data`目录会映射到宿主机的`./data`目录
+- 数据库文件将存储在`./data/env_vars.db`
 - 即使容器被删除，数据库数据也会保存在宿主机上
 - 下次启动容器时，会继续使用之前的数据
+
+**为什么使用目录挂载而不是文件挂载？**
+
+1. **避免文件锁定问题**：SQLite 数据库文件在使用时会被锁定，直接挂载文件可能导致容器重启时出现权限或锁定问题
+2. **更好的权限管理**：目录挂载比文件挂载更容易处理权限问题
+3. **更灵活的配置**：通过环境变量 `DATA_DIR` 和 `DB_PATH` 可以灵活配置数据库位置
+4. **自动目录创建**：应用启动时会自动检查并创建必要的数据目录
+
+**自定义数据库路径**
+
+如果需要自定义数据库路径，可以通过环境变量 `DB_PATH` 指定：
+
+```yaml
+environment:
+  - NODE_ENV=production
+  - DB_PATH=/app/custom-data/my-env-vars.db
+```
+
+同时需要确保相应的卷挂载：
+
+```yaml
+volumes:
+  - ./custom-data:/app/custom-data
+```
 
 ## 7. 本地镜像管理
 

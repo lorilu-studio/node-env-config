@@ -93,9 +93,10 @@ services:
     ports:
       - "35643:35643"
     volumes:
-      - ./env_vars.db:/app/env_vars.db
+      - ./data:/app/data
     environment:
       - NODE_ENV=production
+      - DATA_DIR=/app/data
     networks:
       - env-manager-network
 
@@ -140,9 +141,10 @@ services:
     ports:
       - "35643:35643"
     volumes:
-      - ./env_vars.db:/app/env_vars.db
+      - ./data:/app/data
     environment:
       - NODE_ENV=production
+      - DATA_DIR=/app/data
 ```
 
 然后执行：
@@ -217,9 +219,13 @@ docker-compose logs
 
 ## 9. 注意事项
 
-1. **数据持久化**：使用卷挂载 `./env_vars.db:/app/env_vars.db` 确保数据库数据不会丢失
+1. **数据持久化**：使用卷挂载 `./data:/app/data` 确保数据库数据不会丢失
+   - 推荐挂载整个数据目录而不是单个数据库文件，避免文件锁定问题
+   - 数据库文件将存储在挂载目录下的 `env_vars.db`
 2. **端口映射**：确保宿主机端口35643未被占用
 3. **环境变量**：可以通过修改 `docker-compose.yml` 中的 `environment` 部分自定义环境变量
+   - `DATA_DIR`: 指定数据存储目录，默认为 `/app/data`
+   - `DB_PATH`: 指定数据库文件完整路径，默认为 `$DATA_DIR/env_vars.db`
 4. **镜像标签**：强烈建议使用语义化版本号作为标签，如 `1.0.0`、`1.1.0` 等，而不仅仅是 `latest`
    - 使用明确的版本标签有助于版本控制和回滚
    - 在生产环境中，避免使用`latest`标签，因为它可能导致不可预测的部署

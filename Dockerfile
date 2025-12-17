@@ -4,6 +4,9 @@ FROM node:20-alpine
 # 设置工作目录
 WORKDIR /app
 
+# 创建数据目录
+RUN mkdir -p /app/data
+
 # 复制package.json和package-lock.json到工作目录
 COPY package*.json ./
 
@@ -15,6 +18,9 @@ COPY . .
 
 # 暴露端口
 EXPOSE 35643
+
+# 设置默认数据目录环境变量
+ENV DATA_DIR=/app/data
 
 # 启动应用
 CMD ["npm", "start"]
