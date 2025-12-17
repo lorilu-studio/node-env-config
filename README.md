@@ -125,12 +125,20 @@ MIT License
    
    # 或者拉取最新版本
    docker pull lorilu/env-manager:latest
+   
+   # 拉取特定架构版本
+   docker pull lorilu/env-manager:amd64-1.0.0  # AMD64架构
+   docker pull lorilu/env-manager:arm64-1.0.0  # ARM64架构
    ```
 
 2. **运行容器**
    ```bash
-   # 运行容器
+   # 运行容器（自动选择架构）
    docker run -d -p 35643:35643 --name env-manager lorilu/env-manager:1.0.0
+   
+   # 运行特定架构容器
+   docker run --platform linux/amd64 -d -p 35643:35643 --name env-manager-amd64 lorilu/env-manager:amd64-1.0.0
+   docker run --platform linux/arm64 -d -p 35643:35643 --name env-manager-arm64 lorilu/env-manager:arm64-1.0.0
    ```
 
 3. **访问服务**
@@ -202,10 +210,36 @@ docker run -d -p 35643:35643 \
 
 2. **构建镜像**
    ```bash
+   # 构建默认镜像（自动选择架构）
    docker build -t your-name/env-manager:1.0.0 .
+   
+   # 构建特定架构镜像
+   docker build --platform linux/amd64 -t your-name/env-manager:amd64-1.0.0 .
+   docker build --platform linux/arm64 -t your-name/env-manager:arm64-1.0.0 .
+   
+   # 使用多架构构建脚本
+   chmod +x build-multiarch.sh
+   ./build-multiarch.sh your-name/env-manager 1.0.0
    ```
 
 3. **运行容器**
    ```bash
    docker run -d -p 35643:35643 --name env-manager your-name/env-manager:1.0.0
    ```
+
+### 多架构支持说明
+
+本项目支持多架构部署，包括：
+- **amd64**: 适用于大多数服务器和桌面环境
+- **arm64**: 适用于ARM服务器和ARM64设备（如树莓派4、Apple Silicon Mac等）
+
+多架构镜像的优势：
+- 在不同硬件架构上实现原生性能
+- 统一的部署体验
+- 简化CI/CD流程
+
+### 架构选择建议
+
+- **生产环境**: 使用与服务器架构匹配的特定镜像以获得最佳性能
+- **开发环境**: 使用通用镜像（自动选择架构）以简化部署流程
+- **混合架构环境**: 使用多架构构建脚本一次性构建所有架构

@@ -13,13 +13,11 @@ docker-compose --version
 ### 1.2 注册Docker Hub账号
 如果您还没有Docker Hub账号，请访问 [Docker Hub](https://hub.docker.com/) 注册一个。
 
-## 2. 构建和发布步骤
+## 2. 多架构构建（推荐）
 
-### 2.0 多架构构建（推荐）
+为了支持不同的CPU架构（如AMD64和ARM64），我们提供了多架构构建选项。
 
-为了支持不同的CPU架构（如AMD64和ARM64），我们提供了多架构构建脚本。
-
-#### 2.0.1 使用多架构构建脚本
+### 2.1 使用多架构构建脚本
 
 1. **设置Docker Hub用户名（可选）**
    ```bash
@@ -37,7 +35,7 @@ docker-compose --version
 - 如果设置了 `DOCKER_HUB_USERNAME`，会自动推送到Docker Hub
 - 自动添加版本标签（如 `1.0.0`, `1.0`, `latest`）
 
-#### 2.0.2 手动多架构构建
+### 2.2 手动多架构构建
 
 如果您想手动进行多架构构建：
 
@@ -74,20 +72,50 @@ docker-compose --version
    docker buildx imagetools inspect [your-dockerhub-username]/env-manager:1.0.0
    ```
 
-#### 2.0.3 多架构镜像的优势
+### 2.3 构建特定架构镜像
+
+如果您只需要构建特定架构的镜像：
+
+1. **构建AMD64架构镜像**
+   ```bash
+   docker build --platform linux/amd64 -t [your-dockerhub-username]/env-manager:amd64-1.0.0 .
+   ```
+
+2. **构建ARM64架构镜像**
+   ```bash
+   docker build --platform linux/arm64 -t [your-dockerhub-username]/env-manager:arm64-1.0.0 .
+   ```
+
+3. **推送特定架构镜像**
+   ```bash
+   docker push [your-dockerhub-username]/env-manager:amd64-1.0.0
+   docker push [your-dockerhub-username]/env-manager:arm64-1.0.0
+   ```
+
+### 2.4 多架构镜像的优势
 
 - **跨平台兼容**：同一镜像可以在Intel/AMD和ARM架构的机器上运行
 - **简化部署**：无需为不同架构维护不同的镜像标签
 - **自动选择**：Docker会根据运行环境自动选择正确的架构
 - **未来兼容**：支持新的ARM架构服务器（如AWS Graviton、Apple Silicon等）
 
-### 2.1 登录Docker Hub
+### 2.5 架构选择建议
+
+- **生产环境**：使用与服务器架构匹配的特定镜像以获得最佳性能
+- **开发环境**：使用通用镜像（自动选择架构）以简化部署流程
+- **混合架构环境**：使用多架构构建脚本一次性构建所有架构
+
+## 3. 传统单架构构建
+
+如果您只需要构建当前架构的镜像：
+
+### 3.1 登录Docker Hub
 ```bash
 docker login
 ```
 按照提示输入您的Docker Hub用户名和密码。
 
-### 2.2 构建Docker镜像
+### 3.2 构建Docker镜像
 在项目根目录执行：
 ```bash
 docker build -t [your-dockerhub-username]/env-manager:1.0.0 .
@@ -105,24 +133,24 @@ docker build -t [your-dockerhub-username]/env-manager:1.0.0 .
 - 修订号：向下兼容的问题修正
 - 对于生产环境，建议使用明确的版本标签，如`1.0.0`而非`latest`
 
-### 2.3 查看构建的镜像
+### 3.3 查看构建的镜像
 ```bash
 docker images
 ```
 您应该能看到刚刚构建的镜像。
 
-### 2.4 测试镜像（可选）
+### 3.4 测试镜像（可选）
 ```bash
 docker run -d -p 35643:35643 [your-dockerhub-username]/env-manager:1.0.0
 ```
 访问 http://localhost:35643/login 确认服务正常运行。
 
-### 2.5 推送镜像到Docker Hub
+### 3.5 推送镜像到Docker Hub
 ```bash
 docker push [your-dockerhub-username]/env-manager:1.0.0
 ```
 
-### 2.5.1 推送多个版本标签（可选）
+### 3.5.1 推送多个版本标签（可选）
 为了方便管理和使用，您可以为一个镜像添加多个标签并推送：
 
 ```bash
@@ -141,12 +169,12 @@ docker push [your-dockerhub-username]/env-manager:latest
 - `env-manager:1.0` - 主版本，用于兼容同一主版本的更新
 - `env-manager:latest` - 最新版本，用于测试和开发环境
 
-### 2.6 验证发布结果
+### 3.6 验证发布结果
 访问您的Docker Hub页面 `https://hub.docker.com/repository/docker/[your-dockerhub-username]/env-manager`，您应该能看到刚刚推送的镜像。
 
-## 3. 使用docker-compose.yml简化构建和运行
+## 4. 使用docker-compose.yml简化构建和运行
 
-### 3.1 修改docker-compose.yml
+### 4.1 修改docker-compose.yml
 ```yaml
 version: '3.8'
 
@@ -169,7 +197,7 @@ networks:
     driver: bridge
 ```
 
-### 3.2 使用docker-compose构建和推送
+### 4.2 使用docker-compose构建和推送
 ```bash
 # 构建镜像
 docker-compose build
@@ -178,21 +206,33 @@ docker-compose build
 docker-compose push
 ```
 
-## 4. 公共访问设置
+## 5. 公共访问设置
 
 - 确保您的Docker Hub仓库设置为 **公开**（默认）
 - 如果需要私有仓库，在Docker Hub页面修改仓库设置
 
-## 5. 从公共仓库拉取镜像
+## 6. 从公共仓库拉取镜像
 
 其他用户可以通过以下命令拉取和运行您的镜像：
 
-### 5.1 使用docker命令
+### 6.1 使用docker命令
 ```bash
+# 拉取通用镜像（自动选择架构）
+docker pull [your-dockerhub-username]/env-manager:1.0.0
+
+# 拉取特定架构镜像
+docker pull [your-dockerhub-username]/env-manager:amd64-1.0.0
+docker pull [your-dockerhub-username]/env-manager:arm64-1.0.0
+
+# 运行容器
 docker run -d -p 35643:35643 [your-dockerhub-username]/env-manager:1.0.0
+
+# 运行特定架构容器
+docker run --platform linux/amd64 -d -p 35643:35643 --name env-manager-amd64 [your-dockerhub-username]/env-manager:amd64-1.0.0
+docker run --platform linux/arm64 -d -p 35643:35643 --name env-manager-arm64 [your-dockerhub-username]/env-manager:arm64-1.0.0
 ```
 
-### 5.2 使用docker-compose
+### 6.2 使用docker-compose
 创建 `docker-compose.yml` 文件：
 ```yaml
 version: '3.8'
@@ -214,7 +254,7 @@ services:
 docker-compose up -d
 ```
 
-## 6. 访问服务
+## 7. 访问服务
 
 无论使用哪种方式，服务启动后，您可以通过以下地址访问：
 - 登录页面：`http://localhost:35643/login`

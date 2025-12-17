@@ -99,12 +99,41 @@ docker info
    docker buildx imagetools inspect [your-dockerhub-username]/env-manager:1.0.0
    ```
 
-#### 4.0.3 多架构镜像的优势
+#### 4.0.3 构建特定架构镜像
+
+如果您只需要构建特定架构的镜像：
+
+1. **构建AMD64架构镜像**
+   ```bash
+   docker build --platform linux/amd64 -t env-manager:amd64-1.0.0 .
+   ```
+
+2. **构建ARM64架构镜像**
+   ```bash
+   docker build --platform linux/arm64 -t env-manager:arm64-1.0.0 .
+   ```
+
+3. **运行特定架构容器**
+   ```bash
+   # 运行AMD64容器
+   docker run --platform linux/amd64 -d -p 35643:35643 --name env-manager-amd64 env-manager:amd64-1.0.0
+   
+   # 运行ARM64容器
+   docker run --platform linux/arm64 -d -p 35644:35643 --name env-manager-arm64 env-manager:arm64-1.0.0
+   ```
+
+#### 4.0.4 多架构镜像的优势
 
 - **跨平台兼容**：同一镜像可以在Intel/AMD和ARM架构的机器上运行
 - **简化部署**：无需为不同架构维护不同的镜像标签
 - **自动选择**：Docker会根据运行环境自动选择正确的架构
 - **未来兼容**：支持新的ARM架构服务器（如AWS Graviton、Apple Silicon等）
+
+#### 4.0.5 架构选择建议
+
+- **生产环境**：使用与服务器架构匹配的特定镜像以获得最佳性能
+- **开发环境**：使用通用镜像（自动选择架构）以简化部署流程
+- **混合架构环境**：使用多架构构建脚本一次性构建所有架构
 
 ### 4.1 了解项目结构
 
@@ -206,7 +235,12 @@ env-manager   latest    abcdef123456   2 minutes ago   120MB
 ### 5.1 使用docker run命令运行容器
 
 ```bash
+# 运行通用容器（自动选择架构）
 docker run -d -p 35643:35643 --name env-manager-container env-manager:1.0.0
+
+# 运行特定架构容器
+docker run --platform linux/amd64 -d -p 35643:35643 --name env-manager-amd64 env-manager:amd64-1.0.0
+docker run --platform linux/arm64 -d -p 35644:35643 --name env-manager-arm64 env-manager:arm64-1.0.0
 ```
 
 **命令解释：**
@@ -214,6 +248,7 @@ docker run -d -p 35643:35643 --name env-manager-container env-manager:1.0.0
 - `-d`：在后台运行容器
 - `-p 35643:35643`：端口映射，将宿主机的35643端口映射到容器的35643端口
 - `--name env-manager-container`：为容器指定名称
+- `--platform linux/amd64`：指定运行平台架构
 - `env-manager:1.0.0`：指定要运行的镜像
 
 ### 5.2 查看运行中的容器
