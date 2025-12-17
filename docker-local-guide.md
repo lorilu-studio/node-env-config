@@ -351,6 +351,95 @@ docker system prune -a --volumes
 - 确保网络连接正常，能够下载基础镜像
 - 检查项目依赖是否正确
 
+# 使用国内镜像源的Node.js镜像
+FROM registry.cn-hangzhou.aliyuncs.com/library/node:18-alpine
+
+# 或者使用其他镜像源
+# FROM docker.mirrors.ustc.edu.cn/library/node:18-alpine#### 8.2.1 解决"load metadata for docker.io/library/node:18-alpine"错误
+
+如果遇到以下错误：
+```
+ERROR [internal] load metadata for docker.io/library/node:18-alpine
+```
+
+这通常是由于网络连接问题或无法访问Docker Hub导致的。以下是几种解决方案：
+
+**实际案例：从node:18-alpine到node:20-alpine的成功迁移**
+
+在我们的项目中，我们遇到了上述错误，通过以下步骤成功解决：
+
+1. **问题诊断**：尝试拉取`node:18-alpine`和国内镜像源`registry.cn-hangzhou.aliyuncs.com/library/node:18-alpine`均失败
+2. **解决方案**：将Dockerfile中的基础镜像从`node:18-alpine`更改为`node:20-alpine`
+3. **验证结果**：成功拉取镜像并构建Docker镜像
+
+修改前：
+```dockerfile
+FROM node:18-alpine
+# 或
+FROM registry.cn-hangzhou.aliyuncs.com/library/node:18-alpine
+```
+
+修改后：
+```dockerfile
+FROM node:20-alpine
+```
+
+**其他解决方案：**
+
+**方案1：使用国内镜像源**
+修改Dockerfile，使用国内可用的镜像源：
+```dockerfile
+# 使用国内镜像源的Node.js镜像
+FROM registry.cn-hangzhou.aliyuncs.com/library/node:18-alpine
+
+# 或者使用其他镜像源
+# FROM docker.mirrors.ustc.edu.cn/library/node:18-alpine
+```
+
+**方案2：配置Docker镜像加速器**
+在您的Docker配置中添加镜像加速器，创建或编辑`~/.docker/daemon.json`：
+```json
+{
+  "registry-mirrors": [
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://hub-mirror.c.163.com",
+    "https://mirror.baidubce.com"
+  ]
+}
+```
+然后重启Docker服务。
+
+**方案3：使用不同版本的Node镜像**
+如果18-alpine版本不可用，可以尝试使用其他版本：
+```dockerfile
+# 使用最新的LTS版本
+FROM node:lts-alpine
+
+# 或者使用指定版本
+FROM node:20-alpine
+```
+
+**方案4：手动拉取镜像**
+在构建前先手动拉取基础镜像：
+```bash
+docker pull node:18-alpine
+# 或者使用国内镜像源
+docker pull registry.cn-hangzhou.aliyuncs.com/library/node:18-alpine
+```
+
+**方案5：使用网络代理**
+如果您需要通过代理访问外网，可以在Docker构建时添加代理参数：
+```bash
+docker build --build-arg HTTP_PROXY=http://proxy.example.com:8080 \
+             --build-arg HTTPS_PROXY=http://proxy.example.com:8080 \
+             -t env-manager:latest .
+```
+
+**推荐解决方案顺序：**
+1. 首先尝试使用`node:20-alpine`（更新且稳定）
+2. 如果仍然失败，尝试配置Docker镜像加速器
+3. 最后考虑使用国内镜像源或代理
+
 ### 8.3 容器启动失败
 
 **问题**：容器启动后立即退出
