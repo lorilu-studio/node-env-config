@@ -15,6 +15,72 @@ docker-compose --version
 
 ## 2. 构建和发布步骤
 
+### 2.0 多架构构建（推荐）
+
+为了支持不同的CPU架构（如AMD64和ARM64），我们提供了多架构构建脚本。
+
+#### 2.0.1 使用多架构构建脚本
+
+1. **设置Docker Hub用户名（可选）**
+   ```bash
+   export DOCKER_HUB_USERNAME=your-dockerhub-username
+   ```
+
+2. **运行多架构构建脚本**
+   ```bash
+   ./build-multiarch.sh
+   ```
+
+这个脚本会：
+- 自动设置多架构构建器
+- 构建 `linux/amd64` 和 `linux/arm64` 两种架构的镜像
+- 如果设置了 `DOCKER_HUB_USERNAME`，会自动推送到Docker Hub
+- 自动添加版本标签（如 `1.0.0`, `1.0`, `latest`）
+
+#### 2.0.2 手动多架构构建
+
+如果您想手动进行多架构构建：
+
+1. **创建并使用多架构构建器**
+   ```bash
+   docker buildx create --name multiarch-builder --use
+   docker buildx inspect --bootstrap
+   ```
+
+2. **构建并推送多架构镜像**
+   ```bash
+   docker buildx build \
+     --platform linux/amd64,linux/arm64 \
+     --tag [your-dockerhub-username]/env-manager:1.0.0 \
+     --push \
+     .
+   ```
+
+3. **添加额外标签**
+   ```bash
+   # 添加主版本标签
+   docker buildx imagetools create \
+     [your-dockerhub-username]/env-manager:1.0.0 \
+     --tag [your-dockerhub-username]/env-manager:1.0
+   
+   # 添加latest标签
+   docker buildx imagetools create \
+     [your-dockerhub-username]/env-manager:1.0.0 \
+     --tag [your-dockerhub-username]/env-manager:latest
+   ```
+
+4. **验证多架构镜像**
+   ```bash
+   docker buildx imagetools inspect [your-dockerhub-username]/env-manager:1.0.0
+   ```
+
+#### 2.0.3 多架构镜像的优势
+
+- **跨平台兼容**：同一镜像可以在Intel/AMD和ARM架构的机器上运行
+- **简化部署**：无需为不同架构维护不同的镜像标签
+- **自动选择**：Docker会根据运行环境自动选择正确的架构
+- **未来兼容**：支持新的ARM架构服务器（如AWS Graviton、Apple Silicon等）
+
 ### 2.1 登录Docker Hub
 ```bash
 docker login
@@ -92,8 +158,6 @@ services:
     restart: unless-stopped
     ports:
       - "35643:35643"
-    volumes:
-      - ./data:/app/data
     environment:
       - NODE_ENV=production
       - DATA_DIR=/app/data
@@ -140,8 +204,6 @@ services:
     restart: unless-stopped
     ports:
       - "35643:35643"
-    volumes:
-      - ./data:/app/data
     environment:
       - NODE_ENV=production
       - DATA_DIR=/app/data

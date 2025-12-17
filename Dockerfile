@@ -1,5 +1,5 @@
-# 使用官方Node.js运行时作为基础镜像
-FROM node:20-alpine
+# 多阶段构建，支持多架构
+FROM node:20-alpine AS base
 
 # 设置工作目录
 WORKDIR /app
@@ -11,7 +11,7 @@ RUN mkdir -p /app/data
 COPY package*.json ./
 
 # 安装依赖
-RUN npm install
+RUN npm install --only=production
 
 # 复制所有源代码到工作目录
 COPY . .
@@ -21,6 +21,20 @@ EXPOSE 35643
 
 # 设置默认数据目录环境变量
 ENV DATA_DIR=/app/data
+
+# 添加非root用户以提高安全性
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# 更改数据目录所有者
+RUN chown -R nodejs:nodejs /app/data
+
+# 切换到非root用户
+USER nodejs
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:35643/api/env-vars', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
 
 # 启动应用
 CMD ["npm", "start"]

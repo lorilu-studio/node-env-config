@@ -151,8 +151,6 @@ MIT License
        restart: unless-stopped
        ports:
          - "35643:35643"
-       volumes:
-         - ./data:/app/data
        environment:
          - NODE_ENV=production
          - DATA_DIR=/app/data
@@ -163,21 +161,15 @@ MIT License
    docker-compose up -d
    ```
 
-### 数据持久化
+### 数据存储
 
-为了确保环境变量数据不会在容器重启后丢失，建议将数据目录挂载到宿主机：
+在当前配置中，数据库文件直接存储在容器内的 `/app/data` 目录中。这种方式的优势是：
 
-```bash
-# 创建数据目录
-mkdir -p ./data
+- 简化部署流程，无需处理卷挂载
+- 容器自包含，更适合生产环境
+- 避免了宿主机路径依赖问题
 
-# 运行容器并挂载数据目录
-docker run -d -p 35643:35643 \
-  --name env-manager \
-  -v $(pwd)/data:/app/data \
-  -e DATA_DIR=/app/data \
-  lorilu/env-manager:1.0.0
-```
+注意：如果容器被删除，数据库数据也会丢失。如需持久化数据，可以考虑使用命名卷或数据库备份策略。
 
 ### 高级配置
 
@@ -186,7 +178,6 @@ docker run -d -p 35643:35643 \
 ```bash
 docker run -d -p 35643:35643 \
   --name env-manager \
-  -v /your/custom/path:/app/custom-data \
   -e DB_PATH=/app/custom-data/my-env-vars.db \
   lorilu/env-manager:1.0.0
 ```

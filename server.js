@@ -44,6 +44,13 @@ if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
 }
 
+// 确保数据目录有正确的权限（在容器环境中特别重要）
+try {
+    fs.chmodSync(dataDir, 0o755);
+} catch (err) {
+    console.warn('无法设置数据目录权限:', err.message);
+}
+
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('数据库连接错误:', err.message);

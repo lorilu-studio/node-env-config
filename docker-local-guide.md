@@ -40,6 +40,72 @@ docker info
 
 ## 4. 本地制作Docker镜像步骤
 
+### 4.0 多架构构建（推荐）
+
+为了支持不同的CPU架构（如AMD64和ARM64），我们提供了多架构构建选项。
+
+#### 4.0.1 使用多架构构建脚本
+
+1. **运行多架构构建脚本（本地构建）**
+   ```bash
+   ./build-multiarch.sh
+   ```
+
+   这个脚本会：
+   - 自动设置多架构构建器
+   - 构建 `linux/amd64` 和 `linux/arm64` 两种架构的镜像
+   - 如果未设置 `DOCKER_HUB_USERNAME`，仅在本地构建镜像
+
+2. **设置Docker Hub用户名并推送到远程仓库（可选）**
+   ```bash
+   export DOCKER_HUB_USERNAME=your-dockerhub-username
+   ./build-multiarch.sh
+   ```
+
+#### 4.0.2 手动多架构构建
+
+如果您想手动进行多架构构建：
+
+1. **创建并使用多架构构建器**
+   ```bash
+   docker buildx create --name multiarch-builder --use
+   docker buildx inspect --bootstrap
+   ```
+
+2. **构建多架构镜像（仅本地）**
+   ```bash
+   docker buildx build \
+     --platform linux/amd64,linux/arm64 \
+     --tag env-manager:1.0.0 \
+     --load \
+     .
+   ```
+
+3. **构建并推送多架构镜像（到Docker Hub）**
+   ```bash
+   docker buildx build \
+     --platform linux/amd64,linux/arm64 \
+     --tag [your-dockerhub-username]/env-manager:1.0.0 \
+     --push \
+     .
+   ```
+
+4. **验证多架构镜像**
+   ```bash
+   # 本地镜像
+   docker images | grep env-manager
+   
+   # 远程镜像
+   docker buildx imagetools inspect [your-dockerhub-username]/env-manager:1.0.0
+   ```
+
+#### 4.0.3 多架构镜像的优势
+
+- **跨平台兼容**：同一镜像可以在Intel/AMD和ARM架构的机器上运行
+- **简化部署**：无需为不同架构维护不同的镜像标签
+- **自动选择**：Docker会根据运行环境自动选择正确的架构
+- **未来兼容**：支持新的ARM架构服务器（如AWS Graviton、Apple Silicon等）
+
 ### 4.1 了解项目结构
 
 在开始之前，先了解一下我们的项目结构：
@@ -226,8 +292,6 @@ services:
     restart: unless-stopped
     ports:
       - "35643:35643"
-    volumes:
-      - ./data:/app/data
     environment:
       - NODE_ENV=production
       - DATA_DIR=/app/data
@@ -275,20 +339,15 @@ docker-compose logs -f
 docker-compose down
 ```
 
-### 6.6 使用卷挂载实现数据持久化
+### 6.6 数据存储
 
-在`docker-compose.yml`中，我们使用了卷挂载：
+在当前配置中，数据库文件直接存储在容器内的 `/app/data` 目录中。这种方式的优势是：
 
-```yaml
-volumes:
-  - ./data:/app/data
-```
+- 简化部署流程，无需处理卷挂载
+- 容器自包含，更适合生产环境
+- 避免了宿主机路径依赖问题
 
-这意味着：
-- 容器内的`/app/data`目录会映射到宿主机的`./data`目录
-- 数据库文件将存储在`./data/env_vars.db`
-- 即使容器被删除，数据库数据也会保存在宿主机上
-- 下次启动容器时，会继续使用之前的数据
+注意：如果容器被删除，数据库数据也会丢失。如需持久化数据，可以考虑使用命名卷或数据库备份策略。
 
 **为什么使用目录挂载而不是文件挂载？**
 
